@@ -1,0 +1,6 @@
+__pycache__/
+*.py[cod]
+*.pyo
+.env
+learn_earn_panel.html
+*.log
