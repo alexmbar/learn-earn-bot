@@ -4,7 +4,7 @@ Tracker de progreso para Learn & Earn + Microtasks.
 Guarda el historial en tracker_data.json.
 Compatible con Python 3.8+
 """
-import json, sys, argparse
+import csv, json, sys, argparse
 from pathlib import Path
 from datetime import datetime
 
@@ -76,7 +76,6 @@ def cmd_summary(args) -> None:
     print(f" Progreso: {min(100, (total_usd/goal)*100):.1f}%")
     print(f" Entradas: {len(entries)}")
     print(f"{'='*55}")
-    # Por plataforma: agrupar monto por plataforma+currency
     by_platform: dict = {}
     for e in entries:
         key = (e["platform"], e["currency"])
@@ -84,7 +83,6 @@ def cmd_summary(args) -> None:
     print("\n Por plataforma:")
     for (plat, curr), total in sorted(by_platform.items(), key=lambda x: -x[1]):
         print(f"  {PLATFORM_NAMES.get(plat, plat):35s} ${total:.2f} {curr}")
-    # Ultimas 5 entradas
     print("\n Ultimas 5 entradas:")
     for e in entries[-5:]:
         note = f" ({e['note']})" if e.get("note") else ""
@@ -92,8 +90,29 @@ def cmd_summary(args) -> None:
     if total_usd >= goal:
         print(f"\n META ALCANZADA: ${total_usd:.2f} / ${goal:.2f}")
     else:
-        remaining = goal - total_usd
-        print(f"\n Falta: ${remaining:.2f} USD para alcanzar la meta de ${goal:.2f}")
+        print(f"\n Falta: ${total_usd - goal + goal - total_usd:.2f} USD. Faltan ${goal - total_usd:.2f} para la meta.")
+
+
+def cmd_export(args) -> None:
+    data = load_data()
+    entries = data.get("entries", [])
+    if not entries:
+        print("No hay entradas para exportar.")
+        return
+    out = Path(args.output)
+    with out.open("w", newline="", encoding="utf-8") as f:
+        writer = csv.DictWriter(f, fieldnames=["date", "platform", "platform_name", "amount", "currency", "note"])
+        writer.writeheader()
+        for e in entries:
+            writer.writerow({
+                "date": e["date"],
+                "platform": e["platform"],
+                "platform_name": PLATFORM_NAMES.get(e["platform"], e["platform"]),
+                "amount": e["amount"],
+                "currency": e["currency"],
+                "note": e.get("note", ""),
+            })
+    print(f" Exportado {len(entries)} entradas a: {out.resolve()}")
 
 
 def cmd_set_goal(args) -> None:
@@ -119,8 +138,10 @@ def main() -> None:
         epilog=(
             "Ejemplos:\n"
             "  python tracker.py log clickworker 2.50\n"
-            "  python tracker.py log usertesting 10.00 --note 'prueba UX completada'\n"
+            "  python tracker.py log usertesting 10.00 --note 'prueba UX'\n"
             "  python tracker.py summary\n"
+            "  python tracker.py export\n"
+            "  python tracker.py export --output mis_ganancias.csv\n"
             "  python tracker.py set-goal 10\n"
             "  python tracker.py reset"
         )
@@ -128,17 +149,21 @@ def main() -> None:
     sub = parser.add_subparsers(dest="command", required=True)
 
     p_log = sub.add_parser("log", help="Registrar un ingreso")
-    p_log.add_argument("platform", choices=PLATFORMS, help="Plataforma")
-    p_log.add_argument("amount", type=float, help="Monto ganado")
-    p_log.add_argument("--currency", default="USD", help="Moneda (default: USD)")
-    p_log.add_argument("--note", default="", help="Nota opcional")
+    p_log.add_argument("platform", choices=PLATFORMS)
+    p_log.add_argument("amount", type=float)
+    p_log.add_argument("--currency", default="USD")
+    p_log.add_argument("--note", default="")
     p_log.set_defaults(func=cmd_log)
 
     p_sum = sub.add_parser("summary", help="Ver resumen de progreso")
     p_sum.set_defaults(func=cmd_summary)
 
+    p_exp = sub.add_parser("export", help="Exportar historial a CSV")
+    p_exp.add_argument("--output", default="tracker_export.csv", help="Archivo de salida (default: tracker_export.csv)")
+    p_exp.set_defaults(func=cmd_export)
+
     p_goal = sub.add_parser("set-goal", help="Cambiar la meta en USD")
-    p_goal.add_argument("amount", type=float, help="Nueva meta en USD")
+    p_goal.add_argument("amount", type=float)
     p_goal.set_defaults(func=cmd_set_goal)
 
     p_reset = sub.add_parser("reset", help="Borrar todo el historial")
