@@ -2,6 +2,7 @@
 """
 Tracker de progreso para Learn & Earn + Microtasks.
 Guarda el historial en tracker_data.json.
+Compatible con Python 3.8+
 """
 import json, sys, argparse
 from pathlib import Path
@@ -32,11 +33,11 @@ def load_data() -> dict:
     return {"goal": 5.0, "entries": []}
 
 
-def save_data(data: dict):
+def save_data(data: dict) -> None:
     DATA_FILE.write_text(json.dumps(data, indent=2, ensure_ascii=False), encoding="utf-8")
 
 
-def cmd_log(args):
+def cmd_log(args) -> None:
     data = load_data()
     if args.platform not in PLATFORMS:
         print(f"Plataforma desconocida: {args.platform}. Opciones: {', '.join(PLATFORMS)}")
@@ -60,7 +61,7 @@ def cmd_log(args):
         print("\n META ALCANZADA. Has superado los $5 USD.")
 
 
-def cmd_summary(args):
+def cmd_summary(args) -> None:
     data = load_data()
     entries = data.get("entries", [])
     goal = data.get("goal", 5.0)
@@ -75,15 +76,14 @@ def cmd_summary(args):
     print(f" Progreso: {min(100, (total_usd/goal)*100):.1f}%")
     print(f" Entradas: {len(entries)}")
     print(f"{'='*55}")
-    # Por plataforma
-    by_platform = {}
+    # Por plataforma: agrupar monto por plataforma+currency
+    by_platform: dict = {}
     for e in entries:
-        p = e["platform"]
-        by_platform.setdefault(p, 0.0)
-        by_platform[p] += e["amount"]
+        key = (e["platform"], e["currency"])
+        by_platform[key] = by_platform.get(key, 0.0) + e["amount"]
     print("\n Por plataforma:")
-    for p, total in sorted(by_platform.items(), key=lambda x: -x[1]):
-        print(f"  {PLATFORM_NAMES.get(p, p):35s} ${total:.2f} {entries[0]['currency']}")
+    for (plat, curr), total in sorted(by_platform.items(), key=lambda x: -x[1]):
+        print(f"  {PLATFORM_NAMES.get(plat, plat):35s} ${total:.2f} {curr}")
     # Ultimas 5 entradas
     print("\n Ultimas 5 entradas:")
     for e in entries[-5:]:
@@ -96,14 +96,14 @@ def cmd_summary(args):
         print(f"\n Falta: ${remaining:.2f} USD para alcanzar la meta de ${goal:.2f}")
 
 
-def cmd_set_goal(args):
+def cmd_set_goal(args) -> None:
     data = load_data()
     data["goal"] = round(args.amount, 2)
     save_data(data)
     print(f"Meta actualizada a: ${args.amount:.2f} USD")
 
 
-def cmd_reset(args):
+def cmd_reset(args) -> None:
     confirm = input("Esto borrara todo el historial. Escribe 'si' para confirmar: ").strip().lower()
     if confirm == "si":
         save_data({"goal": 5.0, "entries": []})
@@ -112,7 +112,7 @@ def cmd_reset(args):
         print("Cancelado.")
 
 
-def main():
+def main() -> None:
     parser = argparse.ArgumentParser(
         description="Tracker de progreso para Learn & Earn + Microtasks",
         formatter_class=argparse.RawDescriptionHelpFormatter,
@@ -127,7 +127,6 @@ def main():
     )
     sub = parser.add_subparsers(dest="command", required=True)
 
-    # log
     p_log = sub.add_parser("log", help="Registrar un ingreso")
     p_log.add_argument("platform", choices=PLATFORMS, help="Plataforma")
     p_log.add_argument("amount", type=float, help="Monto ganado")
@@ -135,16 +134,13 @@ def main():
     p_log.add_argument("--note", default="", help="Nota opcional")
     p_log.set_defaults(func=cmd_log)
 
-    # summary
     p_sum = sub.add_parser("summary", help="Ver resumen de progreso")
     p_sum.set_defaults(func=cmd_summary)
 
-    # set-goal
     p_goal = sub.add_parser("set-goal", help="Cambiar la meta en USD")
     p_goal.add_argument("amount", type=float, help="Nueva meta en USD")
     p_goal.set_defaults(func=cmd_set_goal)
 
-    # reset
     p_reset = sub.add_parser("reset", help="Borrar todo el historial")
     p_reset.set_defaults(func=cmd_reset)
 
