@@ -1,6 +1,6 @@
 # learn-earn-bot
 
-Asistente semiautomático para plataformas **Learn & Earn** de cripto (Coinbase, Binance, Kraken).
+Asistente semiautomático para plataformas **Learn & Earn** de cripto y **Microtask platforms** (Coinbase, Binance, Kraken, Clickworker, Microworkers, Remotasks, UserTesting, Prolific).
 
 > **Este proyecto NO automatiza KYC, wallets, quizzes ni transacciones.**
 > Solo abre recursos oficiales, genera un panel HTML y guía con pasos seguros.
@@ -19,19 +19,21 @@ python learn_earn_helper.py --help
 # Abrir TODAS las plataformas a la vez
 python learn_earn_helper.py --all
 
-# Todas + generar panel HTML
-python learn_earn_helper.py --all --panel
+# Solo plataformas Learn & Earn (cripto)
+python learn_earn_helper.py --category learn_earn
 
-# Todas + solo imprimir pasos sin abrir nada
-python learn_earn_helper.py --all --print-only
+# Solo plataformas de microtareas
+python learn_earn_helper.py --category microtask
 
 # Plataforma individual
+python learn_earn_helper.py clickworker --panel
 python learn_earn_helper.py coinbase_earn --panel
-python learn_earn_helper.py binance_learn --panel
-python learn_earn_helper.py kraken_earn --panel
 
-# Solo imprimir pasos sin abrir navegador
-python learn_earn_helper.py coinbase_earn --print-only
+# Solo imprimir pasos sin abrir nada
+python learn_earn_helper.py --all --print-only
+
+# Generar panel HTML local con todos los enlaces
+python learn_earn_helper.py --all --panel
 
 # Ajustar delay entre apertura de URLs
 python learn_earn_helper.py --all --delay 2.0
@@ -39,28 +41,40 @@ python learn_earn_helper.py --all --delay 2.0
 
 ## Plataformas soportadas
 
-| Plataforma | Comando | Tipo |
-|---|---|---|
-| Coinbase Earn / Wallet Quests | `coinbase_earn` | Quiz / Quests onchain |
-| Binance Academy Learn & Earn | `binance_learn` | Quiz / Lecciones |
-| Kraken Earn | `kraken_earn` | Staking / Recompensas |
+### Learn & Earn (cripto)
 
-> **Nota Kraken:** Kraken Earn requiere depositar cripto para ganar recompensas vía staking. No es un programa de lecciones gratuitas. Verifica disponibilidad en tu país antes de usar.
+| Plataforma | Comando | Tipo | Pago |
+|---|---|---|---|
+| Coinbase Earn / Wallet Quests | `coinbase_earn` | Quiz / Quests onchain | Cripto |
+| Binance Academy Learn & Earn | `binance_learn` | Quiz / Lecciones | Cripto |
+| Kraken Earn | `kraken_earn` | Staking | Cripto (requiere depósito) |
+
+### Microtask Platforms
+
+| Plataforma | Comando | Tipo | Pago |
+|---|---|---|---|
+| Clickworker | `clickworker` | Redacción, datos, IA | PayPal/Payoneer semanal |
+| Microworkers | `microworkers` | Testing, formularios | PayPal/cripto |
+| Remotasks | `remotasks` | Etiquetado, IA | PayPal semanal (~$3-7/hr) |
+| UserTesting | `usertesting` | Pruebas UX | PayPal (~$22.50/hr prom.) |
+| Prolific | `prolific` | Encuestas académicas | PayPal (mín. $9/hr) |
 
 ## Flags disponibles
 
 | Flag | Descripción |
 |---|---|
-| `--all` | Abre todas las plataformas disponibles |
-| `--panel` | Genera `learn_earn_panel.html` con enlaces y reglas |
+| `--all` | Abre todas las plataformas |
+| `--category learn_earn` | Solo plataformas Learn & Earn |
+| `--category microtask` | Solo plataformas de microtareas |
+| `--panel` | Genera `learn_earn_panel.html` |
 | `--print-only` | Solo imprime pasos, no abre navegador |
 | `--delay N` | Segundos entre apertura de URLs (default: 1.5) |
 
 ## Qué hace
-- Abre las páginas oficiales de cada plataforma en tu navegador.
-- Soporta modo `--all` para abrir todas las plataformas de una vez.
-- Genera `learn_earn_panel.html` con enlaces, comandos, advertencias y reglas (usa `--panel`).
-- Imprime un checklist de pasos seguros para completar tareas.
+- Abre páginas oficiales de 8 plataformas en tu navegador.
+- Soporta `--all`, `--category` y plataforma individual.
+- Genera `learn_earn_panel.html` con enlaces, insignias, advertencias y reglas.
+- Imprime checklist de pasos seguros para cada plataforma.
 
 ## Qué NO hace
 - No resuelve quizzes ni lecciones por ti.
