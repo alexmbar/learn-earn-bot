@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-import argparse, time, sys
+import argparse, time, sys, webbrowser
 from pathlib import Path
 
 BANNER = """
@@ -44,11 +44,11 @@ TASKS = {
         ],
         "steps": [
             "Crea o inicia sesión en tu cuenta de Kraken manualmente.",
-            "Completa KYC (verificación de identidad) si aún no lo has hecho.",
-            "Revisa qué activos están disponibles para Earn en tu región (México puede tener restricciones).",
-            "Para ganar recompensas, deposita o transsfiere el activo elegible a Kraken Earn.",
-            "Revisa APY, límites de bonificación y mínimos de retiro antes de comprometer fondos.",
-            "NO es un Learn & Earn clásico: requiere tener cripto; las recompensas vienen del staking.",
+            "Completa KYC si aún no lo has hecho.",
+            "Revisa qué activos están disponibles para Earn en tu región.",
+            "Deposita o transfiere el activo elegible a Kraken Earn.",
+            "Revisa APY, límites y mínimos de retiro antes de comprometer fondos.",
+            "Requiere tener cripto; las recompensas vienen del staking.",
         ],
     },
 }
@@ -88,48 +88,80 @@ ul{{padding-left:1.2em}}
 <code>python learn_earn_helper.py coinbase_earn --panel</code><br><br>
 <code>python learn_earn_helper.py binance_learn --panel</code><br><br>
 <code>python learn_earn_helper.py kraken_earn --panel</code><br><br>
+<code>python learn_earn_helper.py --all --panel</code><br><br>
 <code>python learn_earn_helper.py coinbase_earn --print-only</code>
 </div>
 </html>"""
+
 
 def save_panel(path: Path):
     path.write_text(HTML_TEMPLATE, encoding="utf-8")
     print(f"Panel HTML guardado en: {path.resolve()}")
 
+
+def run_task(key: str, delay: float, print_only: bool):
+    task = TASKS[key]
+    print(f"\n{'='*50}")
+    print(f"Plataforma: {task['name']}")
+    print("Pasos a seguir:")
+    for i, step in enumerate(task["steps"], 1):
+        print(f"  {i}. {step}")
+    if print_only:
+        return
+    print("Abriendo URLs...")
+    for url in task["urls"]:
+        print(f"  -> {url}")
+        webbrowser.open(url)
+        time.sleep(delay)
+
+
 def main():
     parser = argparse.ArgumentParser(
         description="Asistente semiautomático para plataformas Learn & Earn de cripto",
         formatter_class=argparse.RawDescriptionHelpFormatter,
-        epilog="Ejemplo: python learn_earn_helper.py coinbase_earn --panel"
+        epilog=(
+            "Ejemplos:\n"
+            "  python learn_earn_helper.py coinbase_earn --panel\n"
+            "  python learn_earn_helper.py --all --panel\n"
+            "  python learn_earn_helper.py binance_learn --print-only"
+        )
     )
-    parser.add_argument("platform", choices=sorted(TASKS.keys()), help="Plataforma objetivo")
+
+    group = parser.add_mutually_exclusive_group(required=True)
+    group.add_argument(
+        "platform",
+        nargs="?",
+        choices=sorted(TASKS.keys()),
+        help="Plataforma específica"
+    )
+    group.add_argument(
+        "--all",
+        action="store_true",
+        help="Abre todas las plataformas disponibles"
+    )
+
     parser.add_argument("--print-only", action="store_true", help="Solo imprime pasos, no abre nada")
     parser.add_argument("--delay", type=float, default=1.5, help="Segundos entre apertura de URLs (default: 1.5)")
     parser.add_argument("--panel", action="store_true", help="Genera panel HTML local con enlaces")
     args = parser.parse_args()
 
     print(BANNER)
-    task = TASKS[args.platform]
-    print(f"Plataforma: {task['name']}")
-    print("\nPasos a seguir:")
-    for i, step in enumerate(task["steps"], 1):
-        print(f"  {i}. {step}")
 
     if args.panel:
         save_panel(Path("learn_earn_panel.html"))
 
-    if args.print_only:
-        print("\nModo solo-lectura. Sin acciones de navegador.")
-        return
+    if args.all:
+        print(f"Modo --all: abriendo {len(TASKS)} plataformas...")
+        for key in sorted(TASKS.keys()):
+            run_task(key, args.delay, args.print_only)
+        print("\nListo. Completa manualmente login, KYC, quizzes y transacciones en cada pestaña.")
+    else:
+        run_task(args.platform, args.delay, args.print_only)
+        if not args.print_only:
+            print("\nListo. Completa manualmente login, KYC, quizzes y transacciones.")
+        else:
+            print("\nModo solo-lectura. Sin acciones de navegador.")
 
-    import webbrowser
-    print("\nAbriendo URLs...")
-    for url in task["urls"]:
-        print(f"  -> {url}")
-        webbrowser.open(url)
-        time.sleep(args.delay)
-
-    print("\nListo. Completa manualmente login, KYC, quizzes y transacciones.")
 
 if __name__ == "__main__":
     try:

@@ -16,20 +16,25 @@ python learn_earn_helper.py --help
 ## Uso
 
 ```bash
-# Coinbase Earn + panel HTML local
+# Abrir TODAS las plataformas a la vez
+python learn_earn_helper.py --all
+
+# Todas + generar panel HTML
+python learn_earn_helper.py --all --panel
+
+# Todas + solo imprimir pasos sin abrir nada
+python learn_earn_helper.py --all --print-only
+
+# Plataforma individual
 python learn_earn_helper.py coinbase_earn --panel
-
-# Binance Academy Learn & Earn + panel HTML local
 python learn_earn_helper.py binance_learn --panel
-
-# Kraken Earn + panel HTML local
 python learn_earn_helper.py kraken_earn --panel
 
-# Solo imprimir pasos sin abrir nada
+# Solo imprimir pasos sin abrir navegador
 python learn_earn_helper.py coinbase_earn --print-only
 
 # Ajustar delay entre apertura de URLs
-python learn_earn_helper.py coinbase_earn --delay 2.0
+python learn_earn_helper.py --all --delay 2.0
 ```
 
 ## Plataformas soportadas
@@ -42,8 +47,18 @@ python learn_earn_helper.py coinbase_earn --delay 2.0
 
 > **Nota Kraken:** Kraken Earn requiere depositar cripto para ganar recompensas vía staking. No es un programa de lecciones gratuitas. Verifica disponibilidad en tu país antes de usar.
 
+## Flags disponibles
+
+| Flag | Descripción |
+|---|---|
+| `--all` | Abre todas las plataformas disponibles |
+| `--panel` | Genera `learn_earn_panel.html` con enlaces y reglas |
+| `--print-only` | Solo imprime pasos, no abre navegador |
+| `--delay N` | Segundos entre apertura de URLs (default: 1.5) |
+
 ## Qué hace
 - Abre las páginas oficiales de cada plataforma en tu navegador.
+- Soporta modo `--all` para abrir todas las plataformas de una vez.
 - Genera `learn_earn_panel.html` con enlaces, comandos, advertencias y reglas (usa `--panel`).
 - Imprime un checklist de pasos seguros para completar tareas.
 
