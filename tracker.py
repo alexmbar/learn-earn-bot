@@ -1,0 +1,159 @@
+#!/usr/bin/env python3
+"""
+Tracker de progreso para Learn & Earn + Microtasks.
+Guarda el historial en tracker_data.json.
+"""
+import json, sys, argparse
+from pathlib import Path
+from datetime import datetime
+
+DATA_FILE = Path("tracker_data.json")
+
+PLATFORMS = [
+    "coinbase_earn", "binance_learn", "kraken_earn",
+    "clickworker", "microworkers", "remotasks", "usertesting", "prolific"
+]
+
+PLATFORM_NAMES = {
+    "coinbase_earn": "Coinbase Earn / Wallet Quests",
+    "binance_learn": "Binance Academy Learn & Earn",
+    "kraken_earn":   "Kraken Earn",
+    "clickworker":   "Clickworker",
+    "microworkers":  "Microworkers",
+    "remotasks":     "Remotasks",
+    "usertesting":   "UserTesting",
+    "prolific":      "Prolific",
+}
+
+
+def load_data() -> dict:
+    if DATA_FILE.exists():
+        return json.loads(DATA_FILE.read_text(encoding="utf-8"))
+    return {"goal": 5.0, "entries": []}
+
+
+def save_data(data: dict):
+    DATA_FILE.write_text(json.dumps(data, indent=2, ensure_ascii=False), encoding="utf-8")
+
+
+def cmd_log(args):
+    data = load_data()
+    if args.platform not in PLATFORMS:
+        print(f"Plataforma desconocida: {args.platform}. Opciones: {', '.join(PLATFORMS)}")
+        sys.exit(1)
+    entry = {
+        "date": datetime.now().strftime("%Y-%m-%d %H:%M"),
+        "platform": args.platform,
+        "amount": round(args.amount, 4),
+        "currency": args.currency.upper(),
+        "note": args.note or "",
+    }
+    data["entries"].append(entry)
+    save_data(data)
+    total = sum(e["amount"] for e in data["entries"] if e["currency"] == "USD")
+    goal = data.get("goal", 5.0)
+    remaining = max(0, goal - total)
+    print(f"\n Registrado: ${args.amount:.2f} {entry['currency']} en {PLATFORM_NAMES[args.platform]}")
+    print(f" Total USD acumulado: ${total:.2f} / ${goal:.2f}")
+    print(f" Faltante para meta:  ${remaining:.2f}")
+    if total >= goal:
+        print("\n META ALCANZADA. Has superado los $5 USD.")
+
+
+def cmd_summary(args):
+    data = load_data()
+    entries = data.get("entries", [])
+    goal = data.get("goal", 5.0)
+    if not entries:
+        print("No hay entradas registradas aun. Usa: python tracker.py log <plataforma> <monto>")
+        return
+    total_usd = sum(e["amount"] for e in entries if e["currency"] == "USD")
+    print(f"\n{'='*55}")
+    print(f" RESUMEN DE PROGRESO")
+    print(f" Meta: ${goal:.2f} USD")
+    print(f" Total acumulado (USD): ${total_usd:.2f}")
+    print(f" Progreso: {min(100, (total_usd/goal)*100):.1f}%")
+    print(f" Entradas: {len(entries)}")
+    print(f"{'='*55}")
+    # Por plataforma
+    by_platform = {}
+    for e in entries:
+        p = e["platform"]
+        by_platform.setdefault(p, 0.0)
+        by_platform[p] += e["amount"]
+    print("\n Por plataforma:")
+    for p, total in sorted(by_platform.items(), key=lambda x: -x[1]):
+        print(f"  {PLATFORM_NAMES.get(p, p):35s} ${total:.2f} {entries[0]['currency']}")
+    # Ultimas 5 entradas
+    print("\n Ultimas 5 entradas:")
+    for e in entries[-5:]:
+        note = f" ({e['note']})" if e.get("note") else ""
+        print(f"  {e['date']}  {PLATFORM_NAMES.get(e['platform'], e['platform']):30s}  ${e['amount']:.2f} {e['currency']}{note}")
+    if total_usd >= goal:
+        print(f"\n META ALCANZADA: ${total_usd:.2f} / ${goal:.2f}")
+    else:
+        remaining = goal - total_usd
+        print(f"\n Falta: ${remaining:.2f} USD para alcanzar la meta de ${goal:.2f}")
+
+
+def cmd_set_goal(args):
+    data = load_data()
+    data["goal"] = round(args.amount, 2)
+    save_data(data)
+    print(f"Meta actualizada a: ${args.amount:.2f} USD")
+
+
+def cmd_reset(args):
+    confirm = input("Esto borrara todo el historial. Escribe 'si' para confirmar: ").strip().lower()
+    if confirm == "si":
+        save_data({"goal": 5.0, "entries": []})
+        print("Historial borrado.")
+    else:
+        print("Cancelado.")
+
+
+def main():
+    parser = argparse.ArgumentParser(
+        description="Tracker de progreso para Learn & Earn + Microtasks",
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        epilog=(
+            "Ejemplos:\n"
+            "  python tracker.py log clickworker 2.50\n"
+            "  python tracker.py log usertesting 10.00 --note 'prueba UX completada'\n"
+            "  python tracker.py summary\n"
+            "  python tracker.py set-goal 10\n"
+            "  python tracker.py reset"
+        )
+    )
+    sub = parser.add_subparsers(dest="command", required=True)
+
+    # log
+    p_log = sub.add_parser("log", help="Registrar un ingreso")
+    p_log.add_argument("platform", choices=PLATFORMS, help="Plataforma")
+    p_log.add_argument("amount", type=float, help="Monto ganado")
+    p_log.add_argument("--currency", default="USD", help="Moneda (default: USD)")
+    p_log.add_argument("--note", default="", help="Nota opcional")
+    p_log.set_defaults(func=cmd_log)
+
+    # summary
+    p_sum = sub.add_parser("summary", help="Ver resumen de progreso")
+    p_sum.set_defaults(func=cmd_summary)
+
+    # set-goal
+    p_goal = sub.add_parser("set-goal", help="Cambiar la meta en USD")
+    p_goal.add_argument("amount", type=float, help="Nueva meta en USD")
+    p_goal.set_defaults(func=cmd_set_goal)
+
+    # reset
+    p_reset = sub.add_parser("reset", help="Borrar todo el historial")
+    p_reset.set_defaults(func=cmd_reset)
+
+    args = parser.parse_args()
+    args.func(args)
+
+
+if __name__ == "__main__":
+    try:
+        main()
+    except KeyboardInterrupt:
+        sys.exit(130)

@@ -1,6 +1,7 @@
 # learn-earn-bot
 
 Asistente semiautomático para plataformas **Learn & Earn** de cripto y **Microtask platforms** (Coinbase, Binance, Kraken, Clickworker, Microworkers, Remotasks, UserTesting, Prolific).
+Inclye un **tracker de progreso** para registrar ganancias y visualizar el avance hacia tu meta.
 
 > **Este proyecto NO automatiza KYC, wallets, quizzes ni transacciones.**
 > Solo abre recursos oficiales, genera un panel HTML y guía con pasos seguros.
@@ -11,32 +12,44 @@ Asistente semiautomático para plataformas **Learn & Earn** de cripto y **Microt
 git clone https://github.com/alexmbar/learn-earn-bot.git
 cd learn-earn-bot
 python learn_earn_helper.py --help
+python tracker.py --help
 ```
 
-## Uso
+## learn_earn_helper.py — Abrir plataformas
 
 ```bash
-# Abrir TODAS las plataformas a la vez
-python learn_earn_helper.py --all
+# Abrir TODAS las plataformas
+python learn_earn_helper.py --all --panel
 
-# Solo plataformas Learn & Earn (cripto)
-python learn_earn_helper.py --category learn_earn
-
-# Solo plataformas de microtareas
+# Solo microtareas
 python learn_earn_helper.py --category microtask
+
+# Solo Learn & Earn cripto
+python learn_earn_helper.py --category learn_earn
 
 # Plataforma individual
 python learn_earn_helper.py clickworker --panel
-python learn_earn_helper.py coinbase_earn --panel
 
 # Solo imprimir pasos sin abrir nada
 python learn_earn_helper.py --all --print-only
+```
 
-# Generar panel HTML local con todos los enlaces
-python learn_earn_helper.py --all --panel
+## tracker.py — Registrar progreso
 
-# Ajustar delay entre apertura de URLs
-python learn_earn_helper.py --all --delay 2.0
+```bash
+# Registrar un ingreso
+python tracker.py log clickworker 2.50
+python tracker.py log usertesting 10.00 --note "prueba UX completada"
+python tracker.py log coinbase_earn 1.25 --currency USDC
+
+# Ver resumen de progreso
+python tracker.py summary
+
+# Cambiar la meta (default: $5 USD)
+python tracker.py set-goal 10
+
+# Borrar todo el historial
+python tracker.py reset
 ```
 
 ## Plataformas soportadas
@@ -59,7 +72,7 @@ python learn_earn_helper.py --all --delay 2.0
 | UserTesting | `usertesting` | Pruebas UX | PayPal (~$22.50/hr prom.) |
 | Prolific | `prolific` | Encuestas académicas | PayPal (mín. $9/hr) |
 
-## Flags disponibles
+## Flags de learn_earn_helper.py
 
 | Flag | Descripción |
 |---|---|
@@ -67,20 +80,30 @@ python learn_earn_helper.py --all --delay 2.0
 | `--category learn_earn` | Solo plataformas Learn & Earn |
 | `--category microtask` | Solo plataformas de microtareas |
 | `--panel` | Genera `learn_earn_panel.html` |
-| `--print-only` | Solo imprime pasos, no abre navegador |
-| `--delay N` | Segundos entre apertura de URLs (default: 1.5) |
+| `--print-only` | Solo imprime pasos |
+| `--delay N` | Segundos entre URLs (default: 1.5) |
 
-## Qué hace
-- Abre páginas oficiales de 8 plataformas en tu navegador.
-- Soporta `--all`, `--category` y plataforma individual.
-- Genera `learn_earn_panel.html` con enlaces, insignias, advertencias y reglas.
-- Imprime checklist de pasos seguros para cada plataforma.
+## Comandos de tracker.py
+
+| Comando | Descripción |
+|---|---|
+| `log <plataforma> <monto>` | Registrar un ingreso |
+| `summary` | Ver resumen y progreso hacia la meta |
+| `set-goal <monto>` | Cambiar la meta en USD |
+| `reset` | Borrar historial |
+
+## Archivos generados
+
+| Archivo | Descripción |
+|---|---|
+| `learn_earn_panel.html` | Panel visual con enlaces (generado con `--panel`) |
+| `tracker_data.json` | Historial de ingresos registrados |
 
 ## Qué NO hace
 - No resuelve quizzes ni lecciones por ti.
 - No firma transacciones ni interactúa con wallets.
 - No intenta evadir controles anti-bot, KYC o verificación de cuenta.
-- No garantiza recompensas (dependen de disponibilidad regional y elegibilidad).
+- No garantiza recompensas.
 
 ## Requerimientos
 
