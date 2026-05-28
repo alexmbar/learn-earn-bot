@@ -36,6 +36,21 @@ TASKS = {
             "Verifica términos de elegibilidad y cupos disponibles.",
         ],
     },
+    "kraken_earn": {
+        "name": "Kraken Earn (staking / recompensas)",
+        "urls": [
+            "https://www.kraken.com/earn",
+            "https://support.kraken.com/hc/en-us/categories/200122606-Funding",
+        ],
+        "steps": [
+            "Crea o inicia sesión en tu cuenta de Kraken manualmente.",
+            "Completa KYC (verificación de identidad) si aún no lo has hecho.",
+            "Revisa qué activos están disponibles para Earn en tu región (México puede tener restricciones).",
+            "Para ganar recompensas, deposita o transsfiere el activo elegible a Kraken Earn.",
+            "Revisa APY, límites de bonificación y mínimos de retiro antes de comprometer fondos.",
+            "NO es un Learn & Earn clásico: requiere tener cripto; las recompensas vienen del staking.",
+        ],
+    },
 }
 
 HTML_TEMPLATE = """<!doctype html>
@@ -46,7 +61,7 @@ h1{{color:#7dd3fc}} h2{{color:#a5f3fc}}
 .card{{background:#1b1b1b;border:1px solid #333;border-radius:12px;padding:16px;margin:14px 0}}
 a{{color:#7dd3fc;text-decoration:none}} a:hover{{text-decoration:underline}}
 code{{background:#222;padding:2px 6px;border-radius:6px;font-size:.9em}}
-.tag{{display:inline-block;background:#1e3a5f;color:#7dd3fc;border-radius:6px;padding:2px 8px;font-size:.8em;margin:2px}}
+.warn{{background:#2d1a00;border:1px solid #7c4a03;border-radius:8px;padding:10px 14px;margin:8px 0;color:#fbbf24}}
 ul{{padding-left:1.2em}}
 </style>
 <h1>Panel semiautomático Learn & Earn</h1>
@@ -58,6 +73,11 @@ ul{{padding-left:1.2em}}
 <div class=\"card\"><h2>Binance</h2>
 <a target=\"_blank\" rel=\"noopener noreferrer\" href=\"https://www.binance.com/en/academy/learn-and-earn\">Binance Academy Learn & Earn</a>
 </div>
+<div class=\"card\"><h2>Kraken Earn</h2>
+<a target=\"_blank\" rel=\"noopener noreferrer\" href=\"https://www.kraken.com/earn\">Kraken Earn</a> &nbsp;|
+<a target=\"_blank\" rel=\"noopener noreferrer\" href=\"https://support.kraken.com/hc/en-us/categories/200122606-Funding\">Soporte / Funding</a>
+<div class=\"warn\">&#9888; Kraken Earn requiere depositar cripto (staking). No es un programa quiz/lección gratuito. Verifica disponibilidad en México.</div>
+</div>
 <div class=\"card\"><h2>Reglas de uso</h2><ul>
 <li>Login manual siempre.</li>
 <li>No automatices wallet ni aprobaciones de transacciones.</li>
@@ -67,6 +87,7 @@ ul{{padding-left:1.2em}}
 <div class=\"card\"><h2>Comandos rápidos</h2>
 <code>python learn_earn_helper.py coinbase_earn --panel</code><br><br>
 <code>python learn_earn_helper.py binance_learn --panel</code><br><br>
+<code>python learn_earn_helper.py kraken_earn --panel</code><br><br>
 <code>python learn_earn_helper.py coinbase_earn --print-only</code>
 </div>
 </html>"""
