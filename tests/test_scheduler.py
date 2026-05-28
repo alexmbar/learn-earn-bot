@@ -2,14 +2,15 @@
 """
 Tests para scheduler.py
 """
-import sys, unittest
+import sys
+import unittest
 from pathlib import Path
-from unittest.mock import patch, MagicMock, call
+from unittest.mock import patch, MagicMock
 from io import StringIO
 from datetime import datetime, timedelta
 
 sys.path.insert(0, str(Path(__file__).parent.parent))
-import scheduler
+import scheduler  # noqa: E402
 
 
 class TestBuildHelperCmd(unittest.TestCase):
@@ -41,7 +42,6 @@ class TestBuildHelperCmd(unittest.TestCase):
 
 class TestSecondsUntil(unittest.TestCase):
     def test_returns_positive(self):
-        # Siempre debe devolver un valor positivo
         future = (datetime.now() + timedelta(minutes=5)).strftime("%H:%M")
         result = scheduler.seconds_until(future)
         self.assertGreater(result, 0)
@@ -49,7 +49,6 @@ class TestSecondsUntil(unittest.TestCase):
     def test_past_time_wraps_to_next_day(self):
         past = (datetime.now() - timedelta(minutes=5)).strftime("%H:%M")
         result = scheduler.seconds_until(past)
-        # Debe ser cercano a 24h en segundos
         self.assertGreater(result, 23 * 3600)
 
 

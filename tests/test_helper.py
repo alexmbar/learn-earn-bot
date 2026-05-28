@@ -2,12 +2,18 @@
 """
 Tests para learn_earn_helper.py
 """
-import sys, unittest
+import sys
+import unittest
 from pathlib import Path
-from unittest.mock import patch, call
+from unittest.mock import patch, MagicMock
 
 sys.path.insert(0, str(Path(__file__).parent.parent))
-import learn_earn_helper as helper
+
+# Patch webbrowser ANTES de importar el modulo para entornos headless (CI)
+import webbrowser
+webbrowser.open = lambda url, **kw: None
+
+import learn_earn_helper as helper  # noqa: E402
 
 
 class TestTasksStructure(unittest.TestCase):
@@ -48,7 +54,10 @@ class TestTasksStructure(unittest.TestCase):
         for key, task in helper.TASKS.items():
             for url in task["urls"]:
                 with self.subTest(task=key, url=url):
-                    self.assertTrue(url.startswith("https://"), f"{url} no es HTTPS")
+                    self.assertTrue(
+                        url.startswith("https://"),
+                        f"{url} no es HTTPS"
+                    )
 
 
 class TestRunTask(unittest.TestCase):
