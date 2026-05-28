@@ -1,9 +1,9 @@
 # learn-earn-bot
 
-Asistente semiautomático para plataformas **Learn & Earn** de cripto y **Microtask platforms** (Coinbase, Binance, Kraken, Clickworker, Microworkers, Remotasks, UserTesting, Prolific).
-Inclye un **tracker de progreso** para registrar ganancias y visualizar el avance hacia tu meta.
+Asistente semiautomático para plataformas **Learn & Earn** de cripto y **Microtask platforms**.  
+Incluye tracker de progreso y scheduler para apertura automática diaria o por intervalo.
 
-> **Este proyecto NO automatiza KYC, wallets, quizzes ni transacciones.**
+> **Este proyecto NO automatiza KYC, wallets, quizzes ni transacciones.**  
 > Solo abre recursos oficiales, genera un panel HTML y guía con pasos seguros.
 
 ## Instalación
@@ -13,44 +13,57 @@ git clone https://github.com/alexmbar/learn-earn-bot.git
 cd learn-earn-bot
 python learn_earn_helper.py --help
 python tracker.py --help
+python scheduler.py --help
 ```
 
-## learn_earn_helper.py — Abrir plataformas
+---
+
+## `learn_earn_helper.py` — Abrir plataformas
 
 ```bash
-# Abrir TODAS las plataformas
-python learn_earn_helper.py --all --panel
-
-# Solo microtareas
-python learn_earn_helper.py --category microtask
-
-# Solo Learn & Earn cripto
-python learn_earn_helper.py --category learn_earn
-
-# Plataforma individual
-python learn_earn_helper.py clickworker --panel
-
-# Solo imprimir pasos sin abrir nada
-python learn_earn_helper.py --all --print-only
+python learn_earn_helper.py --all --panel          # Todas + panel HTML
+python learn_earn_helper.py --category microtask   # Solo microtareas
+python learn_earn_helper.py --category learn_earn  # Solo cripto
+python learn_earn_helper.py clickworker --panel    # Plataforma individual
+python learn_earn_helper.py --all --print-only     # Solo imprimir pasos
 ```
 
-## tracker.py — Registrar progreso
+---
+
+## `tracker.py` — Registrar progreso
 
 ```bash
-# Registrar un ingreso
 python tracker.py log clickworker 2.50
 python tracker.py log usertesting 10.00 --note "prueba UX completada"
 python tracker.py log coinbase_earn 1.25 --currency USDC
-
-# Ver resumen de progreso
 python tracker.py summary
-
-# Cambiar la meta (default: $5 USD)
 python tracker.py set-goal 10
-
-# Borrar todo el historial
 python tracker.py reset
 ```
+
+---
+
+## `scheduler.py` — Automatizar apertura
+
+```bash
+# Ejecutar una vez ahora
+python scheduler.py once
+python scheduler.py once --category microtask
+
+# Abrir todos los días a las 9:00 AM
+python scheduler.py daily --time 09:00
+
+# Solo microtareas todos los días a las 8:30
+python scheduler.py daily --time 08:30 --category microtask
+
+# Abrir cada 6 horas
+python scheduler.py interval --hours 6
+
+# Generar línea cron para configurar en el sistema
+python scheduler.py cron --time 09:00
+```
+
+---
 
 ## Plataformas soportadas
 
@@ -72,37 +85,24 @@ python tracker.py reset
 | UserTesting | `usertesting` | Pruebas UX | PayPal (~$22.50/hr prom.) |
 | Prolific | `prolific` | Encuestas académicas | PayPal (mín. $9/hr) |
 
-## Flags de learn_earn_helper.py
+---
 
-| Flag | Descripción |
-|---|---|
-| `--all` | Abre todas las plataformas |
-| `--category learn_earn` | Solo plataformas Learn & Earn |
-| `--category microtask` | Solo plataformas de microtareas |
-| `--panel` | Genera `learn_earn_panel.html` |
-| `--print-only` | Solo imprime pasos |
-| `--delay N` | Segundos entre URLs (default: 1.5) |
-
-## Comandos de tracker.py
-
-| Comando | Descripción |
-|---|---|
-| `log <plataforma> <monto>` | Registrar un ingreso |
-| `summary` | Ver resumen y progreso hacia la meta |
-| `set-goal <monto>` | Cambiar la meta en USD |
-| `reset` | Borrar historial |
-
-## Archivos generados
+## Archivos del proyecto
 
 | Archivo | Descripción |
 |---|---|
-| `learn_earn_panel.html` | Panel visual con enlaces (generado con `--panel`) |
+| `learn_earn_helper.py` | Abre plataformas, genera panel HTML |
+| `tracker.py` | Registra ingresos y muestra progreso |
+| `scheduler.py` | Automatiza apertura diaria o por intervalo |
+| `learn_earn_panel.html` | Panel visual (generado con `--panel`) |
 | `tracker_data.json` | Historial de ingresos registrados |
 
+---
+
 ## Qué NO hace
-- No resuelve quizzes ni lecciones por ti.
+- No resuelve quizzes ni lecciones.
 - No firma transacciones ni interactúa con wallets.
-- No intenta evadir controles anti-bot, KYC o verificación de cuenta.
+- No evade controles anti-bot o KYC.
 - No garantiza recompensas.
 
 ## Requerimientos
